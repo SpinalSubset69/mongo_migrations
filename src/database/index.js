@@ -8,14 +8,13 @@ async function connectToDatabase(database_url, database) {
 
 module.exports = async (database_url) => {
   let databaseName = "";
-  console.log(database_url);
   //Define databse name
   if (database_url.includes("hn_suck")) {
     databaseName = "Db En Uso";
-  } else if(database_url.includes('olakease')) {
+  } else if (database_url.includes("olakease")) {
     databaseName = "Sistema Becal";
-  }else{
-    databaseName = 'Test Db'
+  } else {
+    databaseName = "New Db";
   }
 
   //Check theres a connection, then disconnect it
