@@ -10,8 +10,15 @@ const UsersSchema = new mongoose.Schema({
   sexo: { type: String },
   password: { type: String },
   folio: { type: String },
+  folioCobijas: { type: String },
   dependienteEconomico: { type: String },
   rol: { type: String },
+  fechanacimiento: { type: String },
+  edad: { type: String },
+  email: { type: String },
+  fijo: { type: String },
+  fotografia: { type: String },
+  nip: { type: String },
 });
 
 module.exports = mongoose.model("users", UsersSchema);

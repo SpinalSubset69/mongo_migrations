@@ -1,3 +1,4 @@
+const registros = require("../database/schemas/registros");
 const ruteadores = require("../database/schemas/ruteadores");
 const socks = require("../database/schemas/socks");
 const users = require("../database/schemas/users");
@@ -25,6 +26,11 @@ async function getSocks() {
   return array;
 }
 
+async function getRegistros() {
+  const array = await registros.find();
+  return array;
+}
+
 async function getUsers() {
   const array = await users.find();
   return array;
@@ -36,4 +42,5 @@ module.exports = {
   getRuteadores,
   getSocks,
   getUsers,
+  getRegistros,
 };

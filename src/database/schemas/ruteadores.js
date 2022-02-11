@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const RuteadoresSchema = new mongoose.Schema({
-  rute: {
+  ruta: {
     type: String,
   },
-  ciuadanos: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
+  ciudadanos: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
   ruteadores: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
 });
 
