@@ -5,29 +5,26 @@ const colors = require("colors");
 const socks = require("../database/schemas/socks");
 const { SchemaTypes } = require("mongoose");
 const { getUsers } = require(".");
+const { AYUNTAMIENTO, RUTEADOR } = require("./constatns");
 const COBIJAS = "61c397661760976e2a418941";
 const DESPENSA = "61c2617fcfc12044730493d0";
 
 function verifyExists() {
   return new Promise(async (resolve) => {
-    //Verify all users has to a sock
+    //Verify all users has a sock
     const allUsers = await getUsers();
     let sum = 0;
     for (let usuario of allUsers) {
-      const exists = await socks.findOne({ ciudadano: usuario._id });
+      const exists = await socks.find({ ciudadano: usuario._id });
+
       if (!exists) {
         console.log(`Usuario: ${usuario._id} no tiene sock`);
-        const sock = new socks();
-        sock.cantidad = 1;
-        sock.ciudadano = usuario._id;
-        sock.biene = "61c37394d4360d0bc2b49130";
-        sock.ruteador = "61a4fdb620778d94c10b4b55";
-
-        const sockExists = await socks.findOne({
-          $and: [{ ciudadano: usuario._id }, { entrega: DESPENSA }],
-        });
-
         if (!sockExists) {
+          const sock = new socks();
+          sock.cantidad = 1;
+          sock.ciudadano = usuario._id;
+          sock.biene = AYUNTAMIENTO;
+          sock.ruteador = RUTEADOR;
           sock.entrega = DESPENSA;
           await sock.save();
         }
@@ -35,7 +32,11 @@ function verifyExists() {
       }
     }
 
-    console.log("Total users without sock: ", sum);
+    console.log(
+      "Total users without sock: ",
+      sum,
+      " and created one of DESPENSA"
+    );
     resolve();
   });
 }

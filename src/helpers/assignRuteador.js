@@ -1,26 +1,30 @@
-const fs = require("fs");
 const users = require("../database/schemas/users");
 const colors = require("colors");
 const ruteadores = require("../database/schemas/ruteadores");
+const { RUTEADOR } = require("./constatns");
 
+//Se debe mandar llamar desues de guardar los datos en la db
 function assignRuteador() {
   return new Promise(async (resolve) => {
     const data = await ruteadores.find();
 
     for (let ruteador of data) {
-      if (typeof ruteador.ruta === "undefined") ruteador.ruta = "0";
+      //Si la ruta no tiene nombre se le asigna el nombre de 0
+      if (!ruteador.ruta) ruteador.ruta = "0";
       // Si no hay ruteador asignado, asignar uno temporal
       if (ruteador.ruteadores.length === 0) {
-        ruteador.ruteadores.push("61a4fdb620778d94c10b4b55");
-        await ruteadores.findOneAndUpdate({ _id: ruteador._id }, ruteador);
+        await ruteadores.findOneAndUpdate(
+          { _id: ruteador._id },
+          {
+            $push: { ruteadores: RUTEADOR },
+          }
+        );
       }
 
       //Verificar que existan los ciudadanos en la base de datos
-      for (let j = 0; j < ruteador.ciudadanos; j++) {
-        const exists = await users.exists(ruteador.ciudadanos[j]);
-        if (!exists) {
-          console.log("User doesnt exists");
-        }
+      for (let ciudadano of ruteador.ciudadanos) {
+        const exists = await users.exists({ _id: ciudadano });
+        if (!exists) console.log(`User: ${ciudadano} doesnt exists`);
       }
     }
     resolve();

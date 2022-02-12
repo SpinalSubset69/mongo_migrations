@@ -17,6 +17,7 @@ function folioCobijas(list) {
           sock.ciudadano = user._id;
           sock.entrega = COBIJAS;
           sock.biene = AYUNTAMIENTO;
+
           //Verificar si el usuario esta en una ruta
           const ruteador = await ruteadores.findOne({ ciudadanos: user._id });
 

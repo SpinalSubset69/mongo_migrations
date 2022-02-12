@@ -13,9 +13,6 @@ function lookDuplicates() {
           newUser.curp === user.curp &&
           user._id.toString() != newUser._id.toString()
         ) {
-          /* console.log(`User ${user._id} duplicado con su curp`);
-          console.log(`CURP: ${user.curp} `); */
-
           const userSock = await socks.findOne({ ciudadano: user._id });
           const newUserSock = await socks.findOne({ ciudadano: newUser._id });
 

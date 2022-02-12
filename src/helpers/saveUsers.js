@@ -43,7 +43,7 @@ function saveUsers(data) {
                   //El dato de otra db tiene mas socks
                   //se debe eliminar el usuario de la db de la ruta tambien, los socks del usuario en la db se deben asignar al nuevo
                   await assignNewUserTosocks(socksExist, data[i]._id);
-                  await filterCiudadanosBasedOnId(exist, rutaData);
+                  await filterCiudadanosBasedOnId(exist._id, rutaData);
                   await deleteOneInsertOne(exist, data[i]);
                 } else if (socksData.length === 0) {
                   //Si el dato que viene no tiene socks, no se guarda
@@ -70,23 +70,19 @@ function saveUsers(data) {
           } else if (rutaData && !rutaExist) {
             console.log("Usuario on db no tiene ruta");
             //el dato que viene de otra db sí tiene una ruta, pero el que esta en la db no
-            //Verificar los socks de cada uno y ver quien tiene ligado
+            //Verificar los socks del usuario registrado en la db y asignarlos al ciudadano que viene de otra db
             const socksExist = await socks.find({ ciudadano: exist._id });
-            if (socksExist) {
-              //Asignar los socks del usuario en la db al nuevo
-              await assignNewUserTosocks(socksExist, data[i]._id);
-            }
+            //Asignar los socks del usuario en la db al nuevo
+            if (socksExist) await assignNewUserTosocks(socksExist, data[i]._id);
             await deleteOneInsertOne(exist, data[i]);
           } else if (!rutaData && rutaExist) {
             console.log("Usuario en db si tiene ruta");
             //el dato  de la db sí tiene una ruta, pero el que viene de otra db no
             //si debe saber si el otro dato esta asignado a un sock y asignarlos al usuario en la base de datos
             const socksData = await socks.find({ ciudadano: data[i]._id });
-            if (socksData) {
-              //Si hay entregas, se asignan al usuario en la db
-              //No se almacena el nuevo dato, ya que no pertenece a ni una ruta
-              await assignNewUserTosocks(socksData, exist._id);
-            }
+            //Si hay entregas, se asignan al usuario en la db
+            //No se almacena el nuevo dato, ya que no pertenece a ni una ruta
+            if (socksData) await assignNewUserTosocks(socksData, exist._id);
           }
           sum++;
         }
@@ -104,15 +100,18 @@ function saveUsers(data) {
 
 async function filterCiudadanosBasedOnId(idToOmit, ruta) {
   console.log("Filtrando ciudadano en ruta");
-  ruta.ciudadanos = ruta.ciudadanos.filter(
-    (ciudadano) => ciudadano.toString() !== idToOmit.toString()
+  console.log(idToOmit);
+  await ruteadores.findOneAndUpdate(
+    { _id: ruta._id },
+    {
+      $pull: { ciudadanos: idToOmit },
+    }
   );
-  await ruteadores.findOneAndUpdate({ _id: ruta._id }, ruta);
 }
 
 async function deleteOneInsertOne(dataToDelete, dataToInsert) {
   console.log("Eliminando User");
-  await users.deleteOne(dataToDelete);
+  await users.deleteOne({ _id: dataToDelete._id });
   await users.insertMany(dataToInsert);
 }
 

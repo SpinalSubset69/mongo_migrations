@@ -45,10 +45,10 @@ const folioCobijas = require("./helpers/folioCobijas");
   await connect_to_database(config.objective_db);
   try {
     //Bienes
-    // await Bienes(bienes_becal);
+    await Bienes(bienes_becal);
 
     //Entregas
-    //await Entregas(entregas_becal);
+    await Entregas(entregas_becal);
 
     //Ruteadores
     await Ruteadores(
@@ -59,21 +59,21 @@ const folioCobijas = require("./helpers/folioCobijas");
     );
 
     //SOCKS
-    /* await Socks(
+    await Socks(
       socks_becal,
       socks_en_uso,
       socks_en_db1,
       socks_en_db2,
       registros_en_db2
-    ); */
+    );
 
     //USERS
     await Users(users_becal, users_en_uso, users_en_db1, users_en_db2);
 
     //Assign ruteadores
-    //await assignRuteador();
+    await assignRuteador();
 
-    //await verifyExists();
+    await verifyExists();
 
     await entregaCobijas();
 
