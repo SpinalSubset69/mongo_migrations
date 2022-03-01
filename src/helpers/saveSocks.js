@@ -3,7 +3,7 @@ const { DESPENSA, COBIJAS } = require("./constatns");
 const dockerDbsUrls = require("./../config/dockerDbs");
 const connect_to_database = require("./../database/index");
 
-function saveSocks(data) {
+function saveSocks() {
   return new Promise(async (resolve) => {
     const cobijas = [];
     const despensas = [];
@@ -15,7 +15,7 @@ function saveSocks(data) {
       await connect_to_database(key[1].toString());
       //Look all socks with cobija as entrega
       const cobijasSocks = await socks.find({
-        $or: [{ tipo: "Cobijas" }, { entrega: COBIJAS }],
+        $or: [{ tipo: "Cobijas" }, { tipo: "Cobija" }, { entrega: COBIJAS }],
       });
 
       for (let entrega of cobijasSocks) {
@@ -43,30 +43,51 @@ function saveSocks(data) {
 
     let total = [];
     console.log("Filtrando array");
+
     for (let entrega of cobijas) {
-      let obj = {};
-      obj.ciudadano = entrega.ciudadano ? entrega.ciudadano : entrega.usuario;
-      obj.ruteador = entrega.ruteador ? entrega.ruteador : entrega.backdoor;
-      if (
-        typeof obj.ciudadano !== "undefined" &&
-        typeof obj.ruteador !== "undefined"
-      ) {
-        total.push(obj);
-      }
+      let obj = buildSockModelObjet(entrega);
+      if (obj) total.push(obj);
     }
 
+    //Se unifican los socks en un solo modelo
     for (let entrega of despensas) {
-      let obj = {};
-      obj.ciudadano = entrega.ciudadano ? entrega.ciudadano : entrega.usuario;
-      obj.ruteador = entrega.ruteador ? entrega.ruteador : entrega.backdoor;
-      total.push(obj);
+      let obj = buildSockModelObjet(entrega);
+      if (obj) total.push(obj);
     }
 
     console.log(`Total Cobijas: ${cobijas.length}`);
     console.log(`Total Despensas: ${despensas.length}`);
     console.log(`Total Entregas con Ciudadano y Ruteador: ${total.length}`);
+
+    //En este punto se debe unificar ambos modelos en uno solo
+    //TODO: CONECTAR A LA BASE DE DATOS OBJETIVO
+    for (let obj of total) {
+      //En este punto las entregas ya se encuentran unificadas en un mismo modelo
+      const exists = await socks.exists({ _id: obj._id });
+      if (!exists) await socks.insertMany(obj);
+    }
     resolve();
   });
+}
+
+function buildSockModelObjet(entrega) {
+  let obj = {};
+  obj._id = entrega._id;
+  obj.biene = entrega.biene;
+  obj.ciudadano = entrega.ciudadano ? entrega.ciudadano : entrega.usuario;
+  obj.ruteador = entrega.ruteador ? entrega.ruteador : entrega.backdoor;
+  obj.entrega = entrega.entrega
+    ? entrega.entrega
+    : entrega.tipo === "Despensas" || "Despensa"
+    ? DESPENSA
+    : COBIJAS;
+  obj.cantidad = entrega.cantidad ? entrega.cantidad : 1;
+  obj.created_at = entrega.created_at ? entrega.created_at : null;
+  if (
+    typeof obj.ciudadano !== "undefined" &&
+    typeof obj.ruteador !== "undefined"
+  )
+    return obj;
 }
 
 module.exports = saveSocks;
