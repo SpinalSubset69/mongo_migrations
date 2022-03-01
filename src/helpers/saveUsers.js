@@ -89,6 +89,8 @@ function saveUsers(data) {
       }
 
       if (!exist) {
+        //DEBO VERIFICAR SI ES UN RUTEADOR GUARDARLO
+        const user = data[i];
         users.insertMany(data[i]);
       }
     }
@@ -99,18 +101,21 @@ function saveUsers(data) {
 }
 
 async function filterCiudadanosBasedOnId(idToOmit, ruta) {
+  //borra el ciudadano de cualquier ruta que exista
   console.log("Filtrando ciudadano en ruta");
   console.log(idToOmit);
-  await ruteadores.findOneAndUpdate(
-    { _id: ruta._id },
+  await ruteadores.updateMany(
+    {},
     {
-      $pull: { ciudadanos: idToOmit },
+      $pull: { ciudadanos: [idToOmit] },
     }
   );
 }
 
 async function deleteOneInsertOne(dataToDelete, dataToInsert) {
   console.log("Eliminando User");
+  const exist = await users.exists({ _id: dataToInsert });
+  if (exist) return;
   await users.deleteOne({ _id: dataToDelete._id });
   await users.insertMany(dataToInsert);
 }
