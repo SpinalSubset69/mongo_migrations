@@ -12,6 +12,8 @@ const SocksSchema = new mongoose.Schema({
   entrega: { type: mongoose.Schema.Types.ObjectId, ref: "entregas" },
   tipo: { type: String },
   created_at: { type: Date },
+  fecha: { type: String },
+  folio: { type: String },
 });
 
 module.exports = mongoose.model("socks", SocksSchema);

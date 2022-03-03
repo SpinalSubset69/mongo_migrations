@@ -19,6 +19,7 @@ const UsersSchema = new mongoose.Schema({
   fijo: { type: String },
   fotografia: { type: String },
   nip: { type: String },
+  ruta: { type: String },
 });
 
 module.exports = mongoose.model("users", UsersSchema);
