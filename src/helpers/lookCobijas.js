@@ -1,8 +1,7 @@
-const config = require("../config");
 const socks = require("../database/schemas/socks");
 const users = require("../database/schemas/users");
 const connect_to_database = require("./../database/index");
-const { COBIJAS } = require("./constatns");
+const { COBIJAS, DESPENSA } = require("./constatns");
 const convertToPdf = require("../utils/convertPdf");
 const dockerDbsUrls = require("../config/dockerDbs");
 const disconnectDb = require("../database/connect");
@@ -10,6 +9,7 @@ const disconnectDb = require("../database/connect");
 function lookCobijas() {
   return new Promise(async (resolve) => {
     let cobijas = [];
+    let despensas = [];
     const keys = Object.entries(dockerDbsUrls);
     //Recuperar todos los socks de las bases de datos excepto la objetivo
     console.log("Recuperando socks");
@@ -17,21 +17,49 @@ function lookCobijas() {
       console.log("Conectando base de datos");
       await connect_to_database(key[1].toString());
       //Look all socks with cobija as entrega
-      const entregas = await socks.find({
+      const entregasCobijas = await socks.find({
         $or: [{ tipo: "Cobijas" }, { entrega: COBIJAS }],
       });
 
-      for (let entrega of entregas) {
+      const entregasDespensas = await socks.find({
+        $or: [
+          { tipo: "Despensas" },
+          { tipo: "Despensa" },
+          { entrega: DESPENSA },
+        ],
+      });
+
+      for (let entrega of entregasCobijas) {
         if (!cobijas.find((x) => x._id.toString() === entrega._id.toString())) {
           cobijas.push(entrega);
         }
       }
-    }
 
+      for (let entrega of entregasDespensas) {
+        if (
+          !despensas.find((x) => x._id.toString() === entrega._id.toString())
+        ) {
+          despensas.push(entrega);
+        }
+      }
+    }
+    const date = new Date();
+    const fecha_reporte = `${date.getDay()}-${date.getMonth()}-${date.getFullYear()}`;
+    await buildCSV(cobijas, `cobijas_reporte_${fecha_reporte}`);
+    await buildCSV(despensas, `despensas_reporte_${fecha_reporte}`);
+
+    resolve();
+  });
+}
+
+module.exports = lookCobijas;
+
+function buildCSV(data, pdfName) {
+  return new Promise(async (resolve) => {
     //Filtrar resultados que no esten indefinidos
     let total = [];
     console.log("Filtrando array");
-    for (let entrega of cobijas) {
+    for (let entrega of data) {
       let obj = {};
       obj.ciudadano = entrega.ciudadano ? entrega.ciudadano : entrega.usuario;
       obj.ruteador = entrega.ruteador ? entrega.ruteador : entrega.backdoor;
@@ -56,6 +84,7 @@ function lookCobijas() {
           await disconnectDb();
           break;
         }
+        await disconnectDb();
       }
 
       if (user && ruteador) {
@@ -79,14 +108,13 @@ function lookCobijas() {
         };
         console.log(obj);
         result.push(obj);
+        await disconnectDb();
       }
     }
 
     console.table(result);
     console.log("Creando Pdf");
-    convertToPdf(result, "cobijasSinFolio");
+    convertToPdf(result, pdfName);
     resolve();
   });
 }
-
-module.exports = lookCobijas;

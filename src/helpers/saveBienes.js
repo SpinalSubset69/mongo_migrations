@@ -1,16 +1,19 @@
 const bienes = require("../database/schemas/bienes");
+const connect_to_database = require("./../database/index");
+const originalDatabases = require("./../config/originalDatabases");
+const config = require("./../config/index");
 
-function saveBienes(data) {
+function saveBienes() {
   return new Promise(async (resolve) => {
-    console.log(`Data length: ${data.length}`);
-    for (let i = 0; i < data.length; i++) {
-      const exist = await bienes.findById(data[i]._id);
+    console.log(`Save Bienes`);
+    await connect_to_database(originalDatabases.db4);
+    const data = await bienes.find();
 
-      if (!exist) {
-        bienes.insertMany(data[i]);
-      }
+    await connect_to_database(config.objective_db);
+    for (let biene of data) {
+      const exists = await bienes.exists({ _id: biene._id });
+      if (!exists) await bienes.insertMany(biene);
     }
-
     resolve();
   });
 }

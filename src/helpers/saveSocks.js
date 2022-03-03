@@ -1,6 +1,7 @@
 const socks = require("../database/schemas/socks");
 const { DESPENSA, COBIJAS } = require("./constatns");
 const dockerDbsUrls = require("./../config/dockerDbs");
+const config = require("./../config/index");
 const connect_to_database = require("./../database/index");
 
 function saveSocks() {
@@ -61,10 +62,10 @@ function saveSocks() {
 
     //En este punto se debe unificar ambos modelos en uno solo
     //TODO: CONECTAR A LA BASE DE DATOS OBJETIVO
-    for (let obj of total) {
-      //En este punto las entregas ya se encuentran unificadas en un mismo modelo
-      const exists = await socks.exists({ _id: obj._id });
-      if (!exists) await socks.insertMany(obj);
+    await connect_to_database(config.objective_db);
+    for (let rut of total) {
+      const exists = await socks.exists({ _id: rut._id });
+      if (!exists) await socks.insertMany(rut);
     }
     resolve();
   });
